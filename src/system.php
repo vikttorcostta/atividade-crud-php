@@ -172,11 +172,11 @@ use Auth\Auth;
             $usuarioMetodos = new UsuarioModel();
             $usuarios = UsuarioModel::listar();
 
+
             foreach ($usuarios as $usuario) { // Início do foreach
 
-        ?>
-        {
-            id: "<?= $usuario['usuario_id']?>",
+        ?> 
+        {   id: "<?= $usuario['usuario_id']?>",
             nome: "<?= $usuario['nome'] ?>",
             email: "<?=$usuario['email']?>",
             telefone: "<?=$usuario['telefone']?>",
@@ -207,13 +207,13 @@ use Auth\Auth;
                     data: null,
                     render: function(data, type, row) {
                         return `
-                            <button class="text-blue-500 hover:text-blue-700 mr-2" onclick="viewUser(${row.id})">
+                            <button class="text-blue-500 hover:text-blue-700 mr-2" onclick="viewUser(<?= $usuario['usuario_id'] ?>)">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="text-green-500 hover:text-green-700 mr-2" onclick="editUser(${row.id})">
+                            <button class="text-green-500 hover:text-green-700 mr-2" onclick="editUser(<?= $usuario['usuario_id'] ?>})">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="text-red-500 hover:text-red-700" onclick="deleteUser(${row.id})">
+                            <button class="text-red-500 hover:text-red-700" onclick="deleteUser(<?= $usuario['usuario_id'] ?>)">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         `;
@@ -284,11 +284,13 @@ use Auth\Auth;
         function addNewUser(userData) {
             const newUser = {
                 id: exampleData.length + 1,
-                ...userData
+                
+
             };
             exampleData.push(newUser);
             table.row.add(newUser).draw();
         }
+
 
         function updateUser(id, userData) {
             const index = exampleData.findIndex(u => u.id === id);
@@ -297,6 +299,7 @@ use Auth\Auth;
                 table.row(`#${id}`).data(exampleData[index]).draw();
             }
         }
+
     });
 
     function viewUser(id) {
@@ -330,13 +333,17 @@ use Auth\Auth;
             $('#userModal').removeClass('hidden');
         }
     }
+
     function deleteUser(id) {
         console.log('Deletar usuário', id);
         if(confirm('Tem certeza que deseja deletar o usuário ' + id + '?')) {
-
             alert('Usuário ' + id + ' deletado com sucesso!');
         }
     }
+
+    deleteUser("<?= $usuario['usuario_id'] ?>");
+    editUser("<?= $usuario['usuario_id'] ?>");
+    viewUser("<?= $usuario['usuario_id'] ?>");
 
     // Função para validar CPF
     function validarCPF(cpf) {
