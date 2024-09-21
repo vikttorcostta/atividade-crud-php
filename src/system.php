@@ -109,6 +109,7 @@ use Auth\Auth;
         <div class="mt-3 text-center">
             <h3 id="userModalTitle" class="text-lg leading-6 font-medium text-gray-900">Cadastro de Novo Usuário</h3>
             <form id="userForm" class="mt-2 text-left" data-mode="add" data-id="">
+                <input type="hidden" name="id" id="id">
                 <div class="mb-4">
                     <label for="nome" class="block text-gray-700 text-sm font-bold mb-2">Nome:</label>
                     <input type="text" id="nome" name="nome" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
@@ -166,22 +167,18 @@ use Auth\Auth;
 <script>
     const exampleData = [
 
-        //Início código PHP
+        
         <?php
 
             $usuarioMetodos = new UsuarioModel();
             $usuarios = UsuarioModel::listar();
-
+            
+            
 
             foreach ($usuarios as $usuario) { // Início do foreach
 
         ?> 
-        {   id: "<?= $usuario['usuario_id']?>",
-            nome: "<?= $usuario['nome'] ?>",
-            email: "<?=$usuario['email']?>",
-            telefone: "<?=$usuario['telefone']?>",
-            cpf: "<?=$usuario['cpf']?>",
-        },
+        {id:<?=$usuario['usuario_id']?>, nome:"<?= $usuario['nome'] ?>", email:"<?=$usuario['email']?>", telefone:"<?=$usuario['telefone']?>", cpf: "<?=$usuario['cpf']?>"},
 
         <?php
 
@@ -210,7 +207,7 @@ use Auth\Auth;
                             <button class="text-blue-500 hover:text-blue-700 mr-2" onclick="viewUser(<?= $usuario['usuario_id'] ?>)">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="text-green-500 hover:text-green-700 mr-2" onclick="editUser(<?= $usuario['usuario_id'] ?>})">
+                            <button class="text-green-500 hover:text-green-700 mr-2" onclick="editUser(<?= $usuario['usuario_id'] ?>)">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button class="text-red-500 hover:text-red-700" onclick="deleteUser(<?= $usuario['usuario_id'] ?>)">
@@ -253,33 +250,7 @@ use Auth\Auth;
             }
             return true;
         }
-
-        // Submeter formulário
-        $('#userForm').submit(function(e) {
-            e.preventDefault();
-            if (!validatePasswords()) {
-                return;
-            }
-
-            const formData = {
-                nome: $('#nome').val(),
-                email: $('#email').val(),
-                telefone: $('#telefone').val(),
-                cpf: $('#cpf').val(),
-                senha: $('#senha').val()
-            };
-
-            const mode = $(this).attr('data-mode');
-            if (mode === 'edit') {
-                const id = parseInt($(this).attr('data-id'));
-                updateUser(id, formData);
-            } else {
-                addNewUser(formData);
-            }
-
-            $('#userModal').addClass('hidden');
-            this.reset();
-        });
+     
 
         function addNewUser(userData) {
             const newUser = {
@@ -302,6 +273,7 @@ use Auth\Auth;
 
     });
 
+
     function viewUser(id) {
 
         const user = exampleData.find(u => u.id === id);
@@ -319,11 +291,13 @@ use Auth\Auth;
     }
 
     function editUser(id) {
+        console.log('Editando o id: '+id);
         const user = exampleData.find(u => u.id === id);
         if (user) {
             $('#userModalTitle').text('Editar Usuário');
             $('#userForm').attr('data-mode', 'edit');
             $('#userForm').attr('data-id', id);
+            $('#id').val(user.id);
             $('#nome').val(user.nome);
             $('#email').val(user.email);
             $('#telefone').val(user.telefone);
@@ -341,9 +315,6 @@ use Auth\Auth;
         }
     }
 
-    deleteUser("<?= $usuario['usuario_id'] ?>");
-    editUser("<?= $usuario['usuario_id'] ?>");
-    viewUser("<?= $usuario['usuario_id'] ?>");
 
     // Função para validar CPF
     function validarCPF(cpf) {
