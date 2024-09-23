@@ -79,24 +79,24 @@ class UsuarioModel
         return false;
     }
 
-    public function excluir($id): bool
-    {
-        try {
-            $pdo = "DELETE FROM " . self::ENTIDADE . " WHERE usuario_id = :id";
-            $estado = $this->connection->prepare($pdo);
-            $estado->bindParam(":id", $id);
-            $estado->execute();
+    public function excluir($id): bool {
 
-            if ($estado->rowCount() > 0) {
-                return true;
-            } else {
-                return false;
-            }
-        } catch (\PDOException $e) {
-            echo "Erro ao excluir usuário: " . $e->getMessage();
+        if (empty($id) || !is_numeric($id)) {
+            error_log("ID inválido: " . var_export($id, true)); // Log para debugar
+            return false;
+        }
+
+        $pdo = "DELETE FROM " . self::ENTIDADE . " WHERE usuario_id = :id";
+        $estado = $this->connection->prepare($pdo);
+        $estado->bindParam(":id", $id, PDO::PARAM_INT);
+        $estado->execute();
+
+        if ($estado->rowCount() > 0) {
+            return true;
+        } else {
+            error_log("Nenhum usuário encontrado para ID: " . var_export($id, true)); // Log para debugar
             return false;
         }
     }
-
 
 }

@@ -3,9 +3,8 @@
 include_once __DIR__ . '/classes/Auth.php';
 include_once __DIR__ . '/classes/UsuarioModel.php';
 
-use BancoDados\BancoDados;
 use UsuarioModel\UsuarioModel;
-use Auth\Auth;
+
 
 ?>
 
@@ -18,8 +17,9 @@ use Auth\Auth;
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+    
 </head>
 <body class="bg-gray-100 h-screen flex overflow-hidden">
 <!-- Menu Lateral -->
@@ -163,221 +163,239 @@ use Auth\Auth;
     </div>
 </div>
 
-<script>
-    const exampleData = [
+    <script>
+        const exampleData = [
 
-        //Início código PHP
-        <?php
+            //Início código PHP
+            <?php
 
-            $usuarioMetodos = new UsuarioModel();
-            $usuarios = UsuarioModel::listar();
+                $usuarioMetodos = new UsuarioModel();
+                $usuarios = UsuarioModel::listar();
 
-            foreach ($usuarios as $usuario) { // Início do foreach
+                foreach ($usuarios as $usuario) { // Início do foreach
 
-        ?>
-        {
-            id: "<?= $usuario['usuario_id']?>",
-            nome: "<?= $usuario['nome'] ?>",
-            email: "<?=$usuario['email']?>",
-            telefone: "<?=$usuario['telefone']?>",
-            cpf: "<?=$usuario['cpf']?>",
-        },
+            ?> {
+                id: <?= $usuario['usuario_id']?>,
+                nome: "<?= $usuario['nome']?>",
+                email: "<?=$usuario['email']?>",
+                telefone: "<?=$usuario['telefone']?>",
+                cpf: "<?=$usuario['cpf']?>",
+            },
 
-        <?php
+            <?php
 
-            } // Fim do foreach
+                } // Fim do foreach
 
-        ?>
-
+            ?>
 
 
-    ];
+
+        ];
 
 
-    $(document).ready(function() {
-        const table = $('#usersTable').DataTable({
-            data: exampleData,
-            columns: [
-                { data: 'id' },
-                { data: 'nome' },
-                { data: 'email' },
-                { data: 'telefone' },
-                { data: 'cpf' },
-                {
-                    data: null,
-                    render: function(data, type, row) {
-                        return `
-                            <button class="text-blue-500 hover:text-blue-700 mr-2" onclick="viewUser(${row.id})">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="text-green-500 hover:text-green-700 mr-2" onclick="editUser(${row.id})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="text-red-500 hover:text-red-700" onclick="deleteUser(${row.id})">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        `;
+        $(document).ready(function() {
+            const table = $('#usersTable').DataTable({
+                data: exampleData,
+                columns: [
+                    { data: 'id' },
+                    { data: 'nome' },
+                    { data: 'email' },
+                    { data: 'telefone' },
+                    { data: 'cpf' },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+                            return `
+                                <button class="text-blue-500 hover:text-blue-700 mr-2" onclick="viewUser(<?= $usuario['usuario_id']?>)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="text-green-500 hover:text-green-700 mr-2" onclick="editUser(<?= $usuario['usuario_id']?>)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="text-red-500 hover:text-red-700" onclick="deleteUser(<?= $usuario['usuario_id']?>)">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            `;
+                        }
                     }
+                ],
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/pt-BR.json'
                 }
-            ],
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/pt-BR.json'
+            });
+
+            // Abrir Modal
+            $('#openModal').click(function() {
+                $('#userModalTitle').text('Cadastro de Novo Usuário');
+                $('#userForm').attr('data-mode', 'add');
+                $('#userForm').attr('data-id', '');
+                $('#userForm')[0].reset();
+                $('#userModal').removeClass('hidden');
+            });
+
+            // Fechar Modal
+            $('#closeModal').click(function() {
+                $('#userModal').addClass('hidden');
+            });
+
+            // Fechar Modal de Visualização
+            $('#closeViewModal').click(function() {
+                $('#viewUserModal').addClass('hidden');
+            });
+
+            function validatePasswords() {
+                const senha = document.getElementById('senha').value;
+                const confirmSenha = document.getElementById('confirmSenha').value;
+                if (senha !== confirmSenha) {
+                    alert('As senhas não coincidem. Por favor, tente novamente.');
+                    return false;
+                }
+                return true;
+            }
+
+            // Submeter formulário
+            $('#userForm').submit(function(e) {
+                e.preventDefault();
+                if (!validatePasswords()) {
+                    return;
+                }
+
+                const formData = {
+                    nome: $('#nome').val(),
+                    email: $('#email').val(),
+                    telefone: $('#telefone').val(),
+                    cpf: $('#cpf').val(),
+                    senha: $('#senha').val()
+                };
+
+                const mode = $(this).attr('data-mode');
+                if (mode === 'edit') {
+                    const id = parseInt($(this).attr('data-id'));
+                    updateUser(id, formData);
+                } else {
+                    addNewUser(formData);
+                }
+
+                
+
+                $('#userModal').addClass('hidden');
+                this.reset();
+            });
+
+            function addNewUser(userData) {
+                const newUser = {
+                    id: exampleData.length + 1,
+                    
+                };
+                exampleData.push(newUser);
+                table.row.add(newUser).draw();
+            }
+
+            function updateUser(id, userData) {
+                const index = exampleData.findIndex(u => u.id === id);
+                if (index !== -1) {
+                    exampleData[index] = { ...exampleData[index], ...userData };
+                    table.row(`#${id}`).data(exampleData[index]).draw();
+                }
             }
         });
 
-        // Abrir Modal
-        $('#openModal').click(function() {
-            $('#userModalTitle').text('Cadastro de Novo Usuário');
-            $('#userForm').attr('data-mode', 'add');
-            $('#userForm').attr('data-id', '');
-            $('#userForm')[0].reset();
-            $('#userModal').removeClass('hidden');
-        });
+        function viewUser(id) {
 
-        // Fechar Modal
-        $('#closeModal').click(function() {
-            $('#userModal').addClass('hidden');
-        });
+            const user = exampleData.find(u => u.id === id);
+            if (user) {
+                const detailsHtml = `
+                    <p><strong>ID:</strong> ${user.id}</p>
+                    <p><strong>Nome:</strong> ${user.nome}</p>
+                    <p><strong>Email:</strong> ${user.email}</p>
+                    <p><strong>Telefone:</strong> ${user.telefone}</p>
+                    <p><strong>CPF:</strong> ${user.cpf}</p>
+                `;
+                $('#userDetails').html(detailsHtml);
+                $('#viewUserModal').removeClass('hidden');
+            }
+        }
+        
 
-        // Fechar Modal de Visualização
-        $('#closeViewModal').click(function() {
-            $('#viewUserModal').addClass('hidden');
-        });
+        function editUser(id) {
+            const user = exampleData.find(u => u.id === id);
+            if (user) {
+                $('#userModalTitle').text('Editar Usuário');
+                $('#userForm').attr('data-mode', 'edit');
+                $('#userForm').attr('data-id', id);
+                $('#nome').val(user.nome);
+                $('#email').val(user.email);
+                $('#telefone').val(user.telefone);
+                $('#cpf').val(user.cpf);
+                $('#senha').val('');
+                $('#confirmSenha').val('');
+                $('#userModal').removeClass('hidden');
+            }
+        }
 
-        function validatePasswords() {
-            const senha = document.getElementById('senha').value;
-            const confirmSenha = document.getElementById('confirmSenha').value;
-            if (senha !== confirmSenha) {
-                alert('As senhas não coincidem. Por favor, tente novamente.');
+
+        function deleteUser(userId) {
+
+            $.ajax({
+                url: 'deletar.php',
+                type: 'POST',
+                data: JSON.stringify({ id: userId }),
+                success: function(response) {
+                    if (response.success) {
+                        alert('Usuário deletado com sucesso!');
+                    } else {
+                        alert('Falha ao deletar usuário: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Erro na requisição AJAX.');
+                }
+            });
+        }
+
+    
+
+        // Função para validar CPF
+        function validarCPF(cpf) {
+            cpf = cpf.replace(/\D+/g,'');
+            if(cpf === '') return false;
+            if (cpf.length !== 11 ||
+                cpf === "00000000000" ||
+                cpf === "11111111111" ||
+                cpf === "22222222222" ||
+                cpf === "33333333333" ||
+                cpf === "44444444444" ||
+                cpf ==="55555555555" ||
+                cpf === "66666666666" ||
+                cpf === "77777777777" ||
+                cpf === "88888888888" ||
+                cpf === "99999999999")
                 return false;
-            }
-            return true;
+            let add = 0;
+            for (let i=0; i < 9; i ++)
+                add += parseInt(cpf.charAt(i)) * (10 - i);
+            let rev = 11 - (add % 11);
+            if (rev === 10 || rev === 11)
+                rev = 0;
+            if (rev !== parseInt(cpf.charAt(9)))
+                return false;
+            add = 0;
+            for (let i = 0; i < 10; i ++)
+                add += parseInt(cpf.charAt(i)) * (11 - i);
+            rev = 11 - (add % 11);
+            if (rev === 10 || rev === 11)
+                rev = 0;
+            return rev === parseInt(cpf.charAt(10));
+
         }
 
-        // Submeter formulário
-        $('#userForm').submit(function(e) {
-            e.preventDefault();
-            if (!validatePasswords()) {
-                return;
+        // Adiciona validação de CPF ao formulário
+        document.getElementById('cpf').addEventListener('blur', function() {
+            if (!validarCPF(this.value)) {
+                alert('CPF inválido');
+                this.value = '';
             }
-
-            const formData = {
-                nome: $('#nome').val(),
-                email: $('#email').val(),
-                telefone: $('#telefone').val(),
-                cpf: $('#cpf').val(),
-                senha: $('#senha').val()
-            };
-
-            const mode = $(this).attr('data-mode');
-            if (mode === 'edit') {
-                const id = parseInt($(this).attr('data-id'));
-                updateUser(id, formData);
-            } else {
-                addNewUser(formData);
-            }
-
-            $('#userModal').addClass('hidden');
-            this.reset();
         });
-
-        function addNewUser(userData) {
-            const newUser = {
-                id: exampleData.length + 1,
-                ...userData
-            };
-            exampleData.push(newUser);
-            table.row.add(newUser).draw();
-        }
-
-        function updateUser(id, userData) {
-            const index = exampleData.findIndex(u => u.id === id);
-            if (index !== -1) {
-                exampleData[index] = { ...exampleData[index], ...userData };
-                table.row(`#${id}`).data(exampleData[index]).draw();
-            }
-        }
-    });
-
-    function viewUser(id) {
-
-        const user = exampleData.find(u => u.id === id);
-        if (user) {
-            const detailsHtml = `
-                <p><strong>ID:</strong> ${user.id}</p>
-                <p><strong>Nome:</strong> ${user.nome}</p>
-                <p><strong>Email:</strong> ${user.email}</p>
-                <p><strong>Telefone:</strong> ${user.telefone}</p>
-                <p><strong>CPF:</strong> ${user.cpf}</p>
-            `;
-            $('#userDetails').html(detailsHtml);
-            $('#viewUserModal').removeClass('hidden');
-        }
-    }
-
-    function editUser(id) {
-        const user = exampleData.find(u => u.id === id);
-        if (user) {
-            $('#userModalTitle').text('Editar Usuário');
-            $('#userForm').attr('data-mode', 'edit');
-            $('#userForm').attr('data-id', id);
-            $('#nome').val(user.nome);
-            $('#email').val(user.email);
-            $('#telefone').val(user.telefone);
-            $('#cpf').val(user.cpf);
-            $('#senha').val('');
-            $('#confirmSenha').val('');
-            $('#userModal').removeClass('hidden');
-        }
-    }
-    function deleteUser(id) {
-        console.log('Deletar usuário', id);
-        if(confirm('Tem certeza que deseja deletar o usuário ' + id + '?')) {
-
-            alert('Usuário ' + id + ' deletado com sucesso!');
-        }
-    }
-
-    // Função para validar CPF
-    function validarCPF(cpf) {
-        cpf = cpf.replace(/\D+/g,'');
-        if(cpf === '') return false;
-        if (cpf.length !== 11 ||
-            cpf === "00000000000" ||
-            cpf === "11111111111" ||
-            cpf === "22222222222" ||
-            cpf === "33333333333" ||
-            cpf === "44444444444" ||
-            cpf ==="55555555555" ||
-            cpf === "66666666666" ||
-            cpf === "77777777777" ||
-            cpf === "88888888888" ||
-            cpf === "99999999999")
-            return false;
-        let add = 0;
-        for (let i=0; i < 9; i ++)
-            add += parseInt(cpf.charAt(i)) * (10 - i);
-        let rev = 11 - (add % 11);
-        if (rev === 10 || rev === 11)
-            rev = 0;
-        if (rev !== parseInt(cpf.charAt(9)))
-            return false;
-        add = 0;
-        for (let i = 0; i < 10; i ++)
-            add += parseInt(cpf.charAt(i)) * (11 - i);
-        rev = 11 - (add % 11);
-        if (rev === 10 || rev === 11)
-            rev = 0;
-        return rev === parseInt(cpf.charAt(10));
-
-    }
-
-    // Adiciona validação de CPF ao formulário
-    document.getElementById('cpf').addEventListener('blur', function() {
-        if (!validarCPF(this.value)) {
-            alert('CPF inválido');
-            this.value = '';
-        }
-    });
-</script>
-</body></html>
+    </script>
+    </body>
+</html>
